@@ -11,7 +11,7 @@
 // dependency, so `npm install` is never needed and this works on any OS.
 
 import { deflateRawSync } from 'node:zlib';
-import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -19,9 +19,12 @@ const ROOT: string = dirname(fileURLToPath(import.meta.url));
 const OUT_DIR = join(ROOT, 'boot');
 const OUT_FILE = join(OUT_DIR, 'claude-config.zip');
 
-// This repo's CLAUDE.md documents the bundle; it is not part of it. Shipping it
-// would drop notes about assignment-prep into an employer's repo.
-const EXCLUDE = new Set(['CLAUDE.md']);
+// The bundle is exactly what is listed here. An include list rather than an
+// exclude list so a new root-level file — README.md, notes, scratch — is never
+// shipped into an employer's repo just because nobody remembered to filter it.
+// Directories are walked recursively; files are taken as-is. Top-level names
+// only: a nested path would need separator handling for the zip entry name.
+const INCLUDE: string[] = ['.claude', '.mcp.json'];
 
 type Entry = { name: string; data: Buffer };
 
@@ -156,28 +159,40 @@ function listIfPresent(dir: string) {
   }
 }
 
+function addFile(path: string, entries: Entry[]): void {
+  // Deleted between the readdir and the read; skip rather than crash.
+  const data = readIfPresent(path);
+  if (data === null) return;
+  // Zip paths always use forward slashes, regardless of host OS.
+  const rel = relative(ROOT, path).split(sep).join('/');
+  entries.push({ name: rel, data });
+}
+
 function collect(dir: string, entries: Entry[]): void {
   const dirents = listIfPresent(dir).sort((a, b) => a.name.localeCompare(b.name));
   for (const dirent of dirents) {
-    if (EXCLUDE.has(dirent.name)) continue;
     const path = join(dir, dirent.name);
-    if (dirent.isDirectory()) {
-      collect(path, entries);
-      continue;
-    }
-    // Deleted between the readdir and the read; skip rather than crash.
-    const data = readIfPresent(path);
-    if (data === null) continue;
-    // Zip paths always use forward slashes, regardless of host OS.
-    const rel = relative(ROOT, path).split(sep).join('/');
-    entries.push({ name: rel, data });
+    if (dirent.isDirectory()) collect(path, entries);
+    else addFile(path, entries);
   }
 }
 
+// One INCLUDE entry, which may name either a directory or a single file.
+function add(path: string, entries: Entry[]): void {
+  let isDir: boolean;
+  try {
+    isDir = statSync(path).isDirectory();
+  } catch (err) {
+    if (!isMissing(err)) throw err;
+    note(path);
+    return;
+  }
+  if (isDir) collect(path, entries);
+  else addFile(path, entries);
+}
+
 const entries: Entry[] = [];
-collect(join(ROOT, '.claude'), entries);
-const mcp = readIfPresent(join(ROOT, '.mcp.json'));
-if (mcp !== null) entries.push({ name: '.mcp.json', data: mcp });
+for (const name of INCLUDE) add(join(ROOT, name), entries);
 
 const zip = buildZip(entries);
 mkdirSync(OUT_DIR, { recursive: true });

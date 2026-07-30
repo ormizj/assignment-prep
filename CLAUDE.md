@@ -48,8 +48,13 @@ already ships its own `.claude/` — `unzip -n` to skip those outright, `unzip -
 A missing source file or directory is reported under `not found, skipped:` rather than aborting the build —
 a half-filled bundle is the normal state of this repo, so `.mcp.json` or a whole `.claude/` subdirectory
 going away should still produce a usable zip. Filenames are copied verbatim — nothing is rewritten on the
-way in. This repo's own `CLAUDE.md` is excluded at every level: it documents the bundle rather than belonging to it,
-and shipping it would drop assignment-prep notes into an employer's repo.
+way in.
+
+The bundle's contents are the `INCLUDE` list at the top of `bootstrap.mts` — an include list rather than an
+exclude list, so anything added to this repo stays here unless it is put on the list. `CLAUDE.md` and
+`README.md` are simply not on it: they document the bundle rather than belonging to it, and shipping them
+would drop assignment-prep notes into an employer's repo. An entry may name a directory (walked
+recursively) or a single file.
 
 It deliberately does **not** touch the target's `.gitignore`. Claude Code's automatic global-excludes
 handling for `settings.local.json` only fires when Claude Code itself writes that file, so bootstrap prints
@@ -70,6 +75,9 @@ assignment, so breakage gets noticed here rather than under the clock.
 ├── skills/                        # procedures Claude follows, invoked as /name
 └── agents/                        # subagent definitions
 .mcp.json                          # project-scoped MCP servers (playwright)
+
+README.md                          # how to use the bundle; not part of it
+CLAUDE.md                          # why it is built this way; not part of it
 ```
 
 The three directories hold only a `.gitkeep` (git won't track an empty directory). They're empty on purpose —
