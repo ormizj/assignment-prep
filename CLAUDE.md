@@ -69,7 +69,7 @@ assignment, so breakage gets noticed here rather than under the clock.
 ├── rules/                         # standing constraints on how code is written
 ├── skills/                        # procedures Claude follows, invoked as /name
 └── agents/                        # subagent definitions
-.mcp.json                          # project-scoped MCP servers (currently empty)
+.mcp.json                          # project-scoped MCP servers (playwright)
 ```
 
 The three directories hold only a `.gitkeep` (git won't track an empty directory). They're empty on purpose —
