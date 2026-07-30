@@ -23,9 +23,15 @@ node_modules/
 # Build output of `npm run bootstrap`
 boot/
 
-# Claude Code — machine-local settings. The shippable version is tracked as
-# .claude/settings.local.json; bootstrap.mjs strips the suffix on copy.
-.claude/settings.local.json
+# Claude Code — .claude/settings.local.json is deliberately NOT ignored here.
+# It carries enableAllProjectMcpServers and ships in the bundle, so it has to be
+# tracked; ignoring it silently dropped it from the zip on a fresh clone. In an
+# assignment repo the same filename stays local, which is Claude Code's default.
+#
+# The negation is required, not decorative: the global excludes file
+# (~/.config/git/ignore) matches `**/.claude/settings.local.json`, and a repo
+# .gitignore outranks it. Dropping this line re-ignores the file everywhere.
+!.claude/settings.local.json
 
 # Environment
 .env

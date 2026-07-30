@@ -11,7 +11,7 @@
 // dependency, so `npm install` is never needed and this works on any OS.
 
 import { deflateRawSync } from 'node:zlib';
-import { mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -19,8 +19,9 @@ const ROOT: string = dirname(fileURLToPath(import.meta.url));
 const OUT_DIR = join(ROOT, 'boot');
 const OUT_FILE = join(OUT_DIR, 'claude-config.zip');
 
-const LOCAL_TEMPLATE = 'settings.local.json';
-const LOCAL_TARGET = 'settings.local.json';
+// This repo's CLAUDE.md documents the bundle; it is not part of it. Shipping it
+// would drop notes about assignment-prep into an employer's repo.
+const EXCLUDE = new Set(['CLAUDE.md']);
 
 type Entry = { name: string; data: Buffer };
 
@@ -123,33 +124,73 @@ function buildZip(entries: Entry[]): Buffer {
 
 // --- collecting the bundle ---------------------------------------------------
 
+// A bundle that is still being filled in is the normal case, so anything absent
+// is reported and skipped rather than aborting the build.
+const skipped: string[] = [];
+
+function isMissing(err: unknown): boolean {
+  return typeof err === 'object' && err !== null && (err as { code?: string }).code === 'ENOENT';
+}
+
+function note(path: string): void {
+  skipped.push(relative(ROOT, path).split(sep).join('/'));
+}
+
+function readIfPresent(path: string): Buffer | null {
+  try {
+    return readFileSync(path);
+  } catch (err) {
+    if (!isMissing(err)) throw err;
+    note(path);
+    return null;
+  }
+}
+
+function listIfPresent(dir: string) {
+  try {
+    return readdirSync(dir, { withFileTypes: true });
+  } catch (err) {
+    if (!isMissing(err)) throw err;
+    note(dir);
+    return [];
+  }
+}
+
 function collect(dir: string, entries: Entry[]): void {
-  for (const name of readdirSync(dir).sort()) {
-    const path = join(dir, name);
-    if (statSync(path).isDirectory()) {
+  const dirents = listIfPresent(dir).sort((a, b) => a.name.localeCompare(b.name));
+  for (const dirent of dirents) {
+    if (EXCLUDE.has(dirent.name)) continue;
+    const path = join(dir, dirent.name);
+    if (dirent.isDirectory()) {
       collect(path, entries);
       continue;
     }
+    // Deleted between the readdir and the read; skip rather than crash.
+    const data = readIfPresent(path);
+    if (data === null) continue;
     // Zip paths always use forward slashes, regardless of host OS.
     const rel = relative(ROOT, path).split(sep).join('/');
-    // Shipped with a suffix so git tracks it here while a real
-    // settings.local.json stays ignored. Strip it on the way out.
-    const zipName = name === LOCAL_TEMPLATE ? rel.replace(LOCAL_TEMPLATE, LOCAL_TARGET) : rel;
-    entries.push({ name: zipName, data: readFileSync(path) });
+    entries.push({ name: rel, data });
   }
 }
 
 const entries: Entry[] = [];
 collect(join(ROOT, '.claude'), entries);
-entries.push({ name: '.mcp.json', data: readFileSync(join(ROOT, '.mcp.json')) });
+const mcp = readIfPresent(join(ROOT, '.mcp.json'));
+if (mcp !== null) entries.push({ name: '.mcp.json', data: mcp });
 
 const zip = buildZip(entries);
 mkdirSync(OUT_DIR, { recursive: true });
 writeFileSync(OUT_FILE, zip);
 
 for (const entry of entries) console.log(`  ${entry.name}`);
+if (skipped.length > 0) {
+  console.log('\nnot found, skipped:');
+  for (const path of skipped) console.log(`  ${path}`);
+}
 console.log(
   `\n${entries.length} files -> ${relative(ROOT, OUT_FILE)} (${(zip.length / 1024).toFixed(1)} KB)`,
 );
+if (entries.length === 0) console.log('warning: the bundle is empty');
 console.log('\nunzip it in the assignment directory at kickoff:');
 console.log(`  unzip ${OUT_FILE}`);
