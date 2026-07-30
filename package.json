@@ -1,0 +1,9 @@
+{
+  "name": "assignment-prep",
+  "private": true,
+  "type": "module",
+  "description": "Pre-built Claude Code config bundle for timed take-home assignments",
+  "scripts": {
+    "bootstrap": "node bootstrap.mts"
+  }
+}

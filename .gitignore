@@ -17,6 +17,16 @@ desktop.ini
 *.sublime-workspace
 *.sublime-project
 
+# Node — there are no dependencies, but package.json invites an install
+node_modules/
+
+# Build output of `npm run bootstrap`
+boot/
+
+# Claude Code — machine-local settings. The shippable version is tracked as
+# .claude/settings.local.json; bootstrap.mjs strips the suffix on copy.
+.claude/settings.local.json
+
 # Environment
 .env
 .env.*
