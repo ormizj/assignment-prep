@@ -24,8 +24,9 @@ returned by a shared endpoint and merely hidden in the UI, and over-fetching tha
 (password hash, email, tokens) to render a username. **Hiding a field with CSS or a conditional render is
 not access control** — the data is in the network response either way.
 
-`client-admin` and `client-user` are separate apps for a reason. An admin capability reachable from the
-user client, or an admin-only type imported into it, is a finding.
+Where the repo splits admin and end-user into separate client apps, that split is a security boundary, not
+an organisational one. An admin capability reachable from the user client, or an admin-only type imported
+into it, is a finding.
 
 ## Render cycles
 
@@ -48,7 +49,13 @@ Missing **error boundaries** mean one thrown render blanks the whole app. Check 
 loading and error branches, not just the happy path, and that a failed request surfaces something to the
 user rather than an empty list that looks like "no data".
 
-## Styling
+## Styling and framework conventions
 
-This repo uses **StyleX**. Match it. Do not introduce inline styles, CSS modules, or another CSS-in-JS
-library to fix a bug — that is a new dependency and a new pattern in a diff that should be surgical.
+**Match whatever is already there.** Identify the styling system from the code before touching it — StyleX,
+Tailwind, CSS modules, vanilla-extract — and stay inside it. Introducing inline styles or a second CSS-in-JS
+library to fix a bug is a new dependency and a new pattern in a diff that is supposed to be surgical.
+
+The same applies to the framework. TanStack Start, Next.js, and plain Vite + React put routing, data
+loading, and the server/client boundary in different places, and a fix that is correct in one is wrong in
+another — a `"use client"` boundary, a route loader, and a server function are not interchangeable. Read one
+existing route end to end before editing any of them.
