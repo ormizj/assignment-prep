@@ -38,7 +38,7 @@ unzip -o ~/.../claude-config.zip   # overwrite without asking
 ├── settings.json          # defaultMode "plan" + allow/ask/deny for pnpm & git
 ├── settings.local.json    # enableAllProjectMcpServers — must stay in this file
 ├── rules/                 # 2 always-on + 7 path-scoped; loaded natively
-├── skills/                # /audit  /prove  /fix  /check  /handoff
+├── skills/                # /audit  /prove  /fix  /commit  /check  /handoff
 └── agents/                # 5 read-only auditors
 .mcp.json                  # project-scoped MCP servers (playwright, pinned)
 ```
@@ -50,6 +50,7 @@ unzip -o ~/.../claude-config.zip   # overwrite without asking
 | `/audit` | Kickoff. Hides `.claude/` from git, captures a green test baseline, maps the workspace, re-scopes the rule globs to the real layout, runs the five auditors in parallel, writes a ranked `AUDIT.md`. Fixes nothing. |
 | `/prove <id>` | Reproduce the finding against the *unfixed* code, time-boxed to 3 minutes. Yields the evidence sentence for the commit body, and usually the regression test that fails before the fix. |
 | `/fix <id>` | One finding → minimal change → verify → one atomic commit with the Problem / Root Cause / Fix / Migration justification. Refuses to bundle two findings. |
+| `/commit` | For work that accumulated outside the `/fix` loop: splits the working tree into the right number of atomic commits, one per finding, each with a pathspec and a full justification. |
 | `/check` | `typecheck` + `lint` + `test:unit`, report only. Cheap enough to run after every edit. |
 | `/handoff` | T-minus 10 min. Writes up what you didn't fix, with diagnosis, plus the final summary. |
 
