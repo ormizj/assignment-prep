@@ -71,7 +71,7 @@ assignment, so breakage gets noticed here rather than under the clock.
 .claude/
 ├── settings.json                  # committed; travels with the bundle
 ├── settings.local.json            # local scope; tracked here, copied as-is
-├── rules/                         # standing constraints on how code is written
+├── rules/                         # standing constraints; loaded natively, see below
 ├── skills/                        # procedures Claude follows, invoked as /name
 └── agents/                        # subagent definitions
 .mcp.json                          # project-scoped MCP servers (playwright)
@@ -80,15 +80,35 @@ README.md                          # how to use the bundle; not part of it
 CLAUDE.md                          # why it is built this way; not part of it
 ```
 
-The three directories hold only a `.gitkeep` (git won't track an empty directory). They're empty on purpose —
-see Current state below.
+## `rules/` is a native Claude Code directory, not a convention
+
+Worth stating plainly, because the convention elsewhere on this machine (`kirva`, `koalires`) is to point at
+`.claude/rules/` from CLAUDE.md prose or to glob it from a skill — neither is necessary:
+
+- Every `.md` under `.claude/rules/` is discovered recursively.
+- **No `paths:` frontmatter** → loaded every session, at the same priority as `.claude/CLAUDE.md`.
+- **`paths: ["src/**/*.ts"]`** → loaded only when Claude touches a matching file. Free until relevant.
+
+That is why **the bundle ships no `CLAUDE.md`**. It doesn't need one to load the rules, and not shipping one
+avoids colliding with the `CLAUDE.md` an assignment repo probably has of its own — `unzip` would prompt to
+overwrite it, and overwriting an employer's project instructions is the wrong default under a clock.
+
+The corollary: keep the two unconditional rules (`00-mission.md`, `10-workspace.md`) short. They cost context
+on every single session. Everything stack-specific belongs behind a `paths:` glob.
 
 ## The two settings files, and why they're split
 
 Precedence runs: managed > CLI args > **local** > **project** > user.
 
-**`.claude/settings.json`** (project scope, committed) holds `permissions.defaultMode: "plan"` and an
-empty `permissions.allow` — the list is a slot to fill per assignment, once the real script names are known.
+**`.claude/settings.json`** (project scope, committed) holds `permissions.defaultMode: "plan"` plus the
+`allow`/`ask`/`deny` lists, filled for a pnpm + Turborepo workspace.
+
+Precedence inside permissions is **deny > ask > allow**, and that ordering is what makes the broad
+`Bash(pnpm:*)` allow safe: it would otherwise permit `pnpm add`, but the deny list takes it back. The
+environment is fixed during an assessment, so mutating dependencies, history, or the working tree
+(`pnpm add`, `git reset --hard`, `git clean`, `rm -rf`) is denied outright rather than left to a prompt.
+`git push` and `pnpm test:e2e` sit in `ask` — the first because it's outward-facing, the second because a
+Playwright run costs minutes you may need.
 
 `plan` is deliberate and matches the global `~/.claude/settings.json` setting. An assignment is read before
 it is written: the planning round-trip at the start of a session is worth more than the seconds it costs.
@@ -112,24 +132,47 @@ at the *end* of a pattern, so `Bash(git:* push)` treats the colon literally and 
 space before `*` enforces a word boundary: `Bash(ls *)` matches `ls -la` but not `lsof`, while `Bash(ls*)`
 matches both.
 
-**No hooks are configured.** Other repos here use `Stop → npm run lint` (see `koalires`, `cobidiex`), which
-is worth adding once an assignment's stack is known — but it fails in a repo with no `lint` script, so it
-can't ship in a stack-agnostic bundle.
+**No hooks are configured, and that is now a decision rather than a limitation.** The stack is known, so
+`Stop → pnpm lint` (the `koalires`/`cobidiex` pattern) would work. It is still wrong here. The obvious
+candidate — a `PostToolUse` hook running `biome check --write` on edited files — actively hurts: Biome
+reformats *pre-existing* lines in any file it touches, inflating the diff, and "minimal, surgical" is an
+explicit grading criterion. `/check` covers the same ground on demand without the diff noise. Don't add one.
 
 ## Current state
 
-**Skeleton only.** `rules/`, `skills/`, and `agents/` are empty, and `permissions.allow` is an empty list.
-Don't assume a skill exists — check before referencing one.
+**Filled for the Speechify `llm-web-refactoring-test`** — a 90-minute, recorded audit of a pnpm/Turborepo
+TypeScript monorepo, delivered as atomic commits with written justifications.
 
-The intended next step is authoring stack-agnostic skills (kickoff, verify, commit, submit). Bootstrap is
-intentionally minimal for now; project detection and stack presets were considered and deferred.
+- `rules/` — 2 unconditional (`00-mission`, `10-workspace`) + 5 path-scoped (typescript, api-grpc,
+  data-drizzle, client-react, testing).
+- `skills/` — `/audit` (kickoff, baseline, parallel sweep, ranked register), `/fix` (one finding, one
+  commit), `/check` (fast green-check), `/handoff` (write up what wasn't fixed).
+- `agents/` — five read-only auditors, one per graded category plus types.
+
+**The stack in `10-workspace.md` is a strong prior, not a verified fact.** It was reconstructed from three
+unrelated prior candidates' public repos, not from Speechify, who only said "a pnpm-based TypeScript
+monorepo". `/audit` step 0 re-derives the real layout and rewrites that rule file if it differs — which is
+why nothing downstream should hardcode a path.
+
+Named `/check`, not `/verify`: Claude Code ships a bundled `/verify` skill and the shadowed name is the
+wrong thing to debug under a clock.
 
 ## Conventions
 
 Slash commands are skills — there is no separate commands concept. For project and personal skills the
-`/name` comes from the **directory name**: `.claude/skills/verify/SKILL.md` is `/verify`, and frontmatter
+`/name` comes from the **directory name**: `.claude/skills/check/SKILL.md` is `/check`, and frontmatter
 `name` is only a display label. (A legacy `.claude/commands/*.md` file still loads, but nothing new should
-go there.)
+go there.) Keep the two in sync anyway — a mismatch is confusing to read even though only the directory
+decides the command.
+
+Subagents load `CLAUDE.md` and project rules; only the built-in `Explore` and `Plan` agents skip them. So
+the auditor agents inherit `rules/` and only need scope, method, and output shape — which is why they are
+~70 lines each rather than the 23KB style in `../kirva/.claude/agents/`.
+
+Subagents also run in the background by default, and a background subagent keeps only a reduced built-in
+tool set (`Read`, `Grep`, `Glob`, `Bash`, `Edit`, `Write`, `WebFetch`, `WebSearch`, and a few more).
+Anything else listed in `tools:` is dropped silently. The auditors stay inside that set deliberately, and
+use `disallowedTools: Edit, Write` so they can only report — fixes must go through `/fix` to stay atomic.
 
 Working examples elsewhere on this machine: `../sadmo/.claude/skills/commit/SKILL.md`,
 `../chromium-filler/.claude/skills/push-main/SKILL.md`, `../koalires/.claude/skills/sync-agents/SKILL.md`,

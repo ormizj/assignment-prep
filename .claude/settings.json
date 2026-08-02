@@ -1,6 +1,44 @@
 {
   "permissions": {
     "defaultMode": "plan",
-    "allow": []
+    "allow": [
+      "Bash(pnpm:*)",
+      "Bash(npx turbo:*)",
+      "Bash(node:*)",
+      "Bash(sqlite3:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(rg:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(wc:*)",
+      "Bash(printf:*)"
+    ],
+    "ask": [
+      "Bash(git push:*)",
+      "Bash(pnpm test:e2e:*)"
+    ],
+    "deny": [
+      "Bash(pnpm add:*)",
+      "Bash(pnpm remove:*)",
+      "Bash(pnpm up:*)",
+      "Bash(pnpm update:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git checkout --:*)",
+      "Bash(git clean:*)",
+      "Bash(git push --force:*)",
+      "Bash(git rebase:*)",
+      "Bash(rm -rf:*)"
+    ]
   }
 }
