@@ -110,6 +110,13 @@ environment is fixed during an assessment, so mutating dependencies, history, or
 `git push` and `pnpm test:e2e` sit in `ask` — the first because it's outward-facing, the second because a
 Playwright run costs minutes you may need.
 
+The deny list also carries `git add -A`, `git add .`, `git add -u`, and `git commit -a`. Atomic commits are
+a graded criterion, and those four are the muscle-memory way to lose them — `/fix` and `/commit` both stage
+an explicit pathspec instead. Note the syntax: `:*` is only recognised at the end of a pattern and the
+space it implies enforces a word boundary, so a bare `git add -A` needs its own exact-match entry beside
+the `git add -A:*` form. It is a guard rail rather than a proof — matching is on the command string, so
+`git -C . add -A` would still get through — but it removes the reflex, which is the actual failure mode.
+
 `plan` is deliberate and matches the global `~/.claude/settings.json` setting. An assignment is read before
 it is written: the planning round-trip at the start of a session is worth more than the seconds it costs.
 `acceptEdits` (auto-approve edits) and `auto` (auto-approve tool calls with background safety checks) are
@@ -137,6 +144,12 @@ matches both.
 candidate — a `PostToolUse` hook running `biome check --write` on edited files — actively hurts: Biome
 reformats *pre-existing* lines in any file it touches, inflating the diff, and "minimal, surgical" is an
 explicit grading criterion. `/check` covers the same ground on demand without the diff noise. Don't add one.
+
+The other candidate — a `PreToolUse` guard blocking a bare `git commit` with no pathspec — was considered
+and rejected in favour of permission deny rules. Deny entries reach the same failure mode through machinery
+already in use, with no new concept to debug at minute three. A hook would additionally catch the bare
+`git commit` case that a string matcher cannot; if that ever proves worth it, this is where the reasoning
+should be revisited.
 
 ## Current state
 
