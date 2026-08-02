@@ -40,6 +40,15 @@ Run these first, in one message, in parallel. Report what each returned before c
    that rule file now** — every later step reasons from it, and a stale map costs more than the minute it
    takes to correct.
 
+   Then do the same for the **`paths:` frontmatter of the stack rules** — `30-api-grpc.md`,
+   `35-node-runtime.md`, `40-data-drizzle.md`, `50-client-react.md`, `70-secrets-config.md`. Each carries
+   both a guessed layout (`apps/api/**`, `apps/client-*/**`) and layout-agnostic fallbacks (`**/*.tsx`,
+   `**/server/**`). Add the real directories. This failure mode is silent: a rule whose globs match nothing
+   in this repo simply never loads, with no warning, and you would only notice by its absence from the
+   advice you get an hour later.
+
+   Report which rules are now scoped to which directories, so the coverage is visible rather than assumed.
+
 3. **Install and capture the baseline.** `pnpm install`, then `pnpm typecheck` and `pnpm test`.
 
    Record the exact counts. If the suite is **already failing on a clean clone**, stop and say so — that is

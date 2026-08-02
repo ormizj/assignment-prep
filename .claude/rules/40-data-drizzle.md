@@ -3,6 +3,11 @@ paths:
   - "packages/db-schema/**"
   - "db/**"
   - "apps/api/**"
+  - "**/schema*.ts"
+  - "**/repositories/**"
+  - "**/drizzle/**"
+  - "**/migrations/**"
+  - "**/*.sql"
 ---
 
 # Data layer — queries, indexes, migrations

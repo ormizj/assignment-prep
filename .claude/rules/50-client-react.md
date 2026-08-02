@@ -2,6 +2,8 @@
 paths:
   - "apps/client-*/**"
   - "packages/ui/**"
+  - "**/*.tsx"
+  - "**/components/**"
 ---
 
 # Client — XSS, render cycles, leaked data

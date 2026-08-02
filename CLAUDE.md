@@ -167,6 +167,12 @@ unrelated prior candidates' public repos, not from Speechify, who only said "a p
 monorepo". `/audit` step 0 re-derives the real layout and rewrites that rule file if it differs — which is
 why nothing downstream should hardcode a path.
 
+**The same prior is load-bearing in the `paths:` globs, and fails silently there.** A rule scoped to
+`apps/api/**` in a repo laid out as `apps/server/` never loads, and nothing reports it — you would notice
+only as advice that failed to appear. Two defences, both needed: every stack rule carries layout-agnostic
+fallbacks alongside the guessed paths (`**/server/**`, `**/*.tsx`, `**/schema*.ts`), and `/audit` step 0
+rewrites the frontmatter to the real directories and reports the resulting coverage.
+
 Named `/check`, not `/verify`: Claude Code ships a bundled `/verify` skill and the shadowed name is the
 wrong thing to debug under a clock.
 

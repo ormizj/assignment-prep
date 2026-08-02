@@ -3,6 +3,11 @@ paths:
   - "apps/api/**"
   - "packages/proto/**"
   - "packages/grpc-client/**"
+  - "**/server/**"
+  - "**/routes/**"
+  - "**/handlers/**"
+  - "**/trpc/**"
+  - "**/*.proto"
 ---
 
 # API surface — authn, authz, validation

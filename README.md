@@ -47,7 +47,7 @@ unzip -o ~/.../claude-config.zip   # overwrite without asking
 
 | | |
 |---|---|
-| `/audit` | Kickoff. Hides `.claude/` from git, captures a green test baseline, maps the workspace, runs the five auditors in parallel, writes a ranked `AUDIT.md`. Fixes nothing. |
+| `/audit` | Kickoff. Hides `.claude/` from git, captures a green test baseline, maps the workspace, re-scopes the rule globs to the real layout, runs the five auditors in parallel, writes a ranked `AUDIT.md`. Fixes nothing. |
 | `/fix <id>` | One finding → minimal change → verify → one atomic commit with the Problem / Root Cause / Fix / Migration justification. Refuses to bundle two findings. |
 | `/check` | `typecheck` + `lint` + `test:unit`, report only. Cheap enough to run after every edit. |
 | `/handoff` | T-minus 10 min. Writes up what you didn't fix, with diagnosis, plus the final summary. |
