@@ -156,8 +156,8 @@ should be revisited.
 **Filled for the Speechify `llm-web-refactoring-test`** — a 90-minute, recorded audit of a pnpm/Turborepo
 TypeScript monorepo, delivered as atomic commits with written justifications.
 
-- `rules/` — 2 unconditional (`00-mission`, `10-workspace`) + 5 path-scoped (typescript, api-grpc,
-  data-drizzle, client-react, testing).
+- `rules/` — 2 unconditional (`00-mission`, `10-workspace`) + 7 path-scoped (typescript, api-grpc,
+  node-runtime, data-drizzle, client-react, testing, secrets-config).
 - `skills/` — `/audit` (kickoff, baseline, parallel sweep, ranked register), `/fix` (one finding, one
   commit), `/check` (fast green-check), `/handoff` (write up what wasn't fixed).
 - `agents/` — five read-only auditors, one per graded category plus types.
@@ -172,6 +172,12 @@ why nothing downstream should hardcode a path.
 only as advice that failed to appear. Two defences, both needed: every stack rule carries layout-agnostic
 fallbacks alongside the guessed paths (`**/server/**`, `**/*.tsx`, `**/schema*.ts`), and `/audit` step 0
 rewrites the frontmatter to the real directories and reports the resulting coverage.
+
+**Agents shape discovery; rules shape the fix.** The auditors are read-only by construction, so every edit
+is made by the main agent, which sees `rules/` and not the agent prompts. A graded category with an auditor
+but no matching path-scoped rule is covered at find-time and uncovered at fix-time — that gap is why
+`35-node-runtime.md` and `70-secrets-config.md` exist, mirroring `reliability-auditor` and the
+secrets/config half of `security-auditor` and `tooling-auditor`.
 
 Named `/check`, not `/verify`: Claude Code ships a bundled `/verify` skill and the shadowed name is the
 wrong thing to debug under a clock.

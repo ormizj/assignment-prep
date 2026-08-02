@@ -37,7 +37,7 @@ unzip -o ~/.../claude-config.zip   # overwrite without asking
 .claude/
 ├── settings.json          # defaultMode "plan" + allow/ask/deny for pnpm & git
 ├── settings.local.json    # enableAllProjectMcpServers — must stay in this file
-├── rules/                 # 2 always-on + 5 path-scoped; loaded natively
+├── rules/                 # 2 always-on + 7 path-scoped; loaded natively
 ├── skills/                # /audit  /fix  /check  /handoff
 └── agents/                # 5 read-only auditors
 .mcp.json                  # project-scoped MCP servers (playwright, pinned)
