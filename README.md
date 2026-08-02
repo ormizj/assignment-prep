@@ -39,7 +39,7 @@ unzip -o ~/.../claude-config.zip   # overwrite without asking
 ├── settings.local.json    # enableAllProjectMcpServers — must stay in this file
 ├── rules/                 # 2 always-on + 7 path-scoped; loaded natively
 ├── skills/                # /audit  /prove  /fix  /commit  /check  /handoff
-└── agents/                # 5 read-only auditors
+└── agents/                # 5 read-only auditors + finding-verifier
 .mcp.json                  # project-scoped MCP servers (playwright, pinned)
 ```
 
@@ -55,7 +55,10 @@ unzip -o ~/.../claude-config.zip   # overwrite without asking
 | `/handoff` | T-minus 10 min. Writes up what you didn't fix, with diagnosis, plus the final summary. |
 
 **Agents** — `security-auditor`, `performance-auditor`, `reliability-auditor`, `tooling-auditor`,
-`types-auditor`. All read-only (`disallowedTools: Edit, Write`): they report, `/fix` applies.
+`types-auditor`, and `finding-verifier`. All read-only (`disallowedTools: Edit, Write`): they report,
+`/fix` applies. The first five run in parallel from `/audit`; `finding-verifier` is dispatched by `/fix`
+for medium-or-lower-confidence findings only, and tries to *refute* the finding before you spend the clock
+on it.
 
 Nothing else. **The bundle is the `INCLUDE` list at the top of `bootstrap.mts`** — an include
 list, not an exclude list, so files added to this repo stay in this repo unless you put them on

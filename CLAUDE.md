@@ -161,7 +161,7 @@ TypeScript monorepo, delivered as atomic commits with written justifications.
 - `skills/` — `/audit` (kickoff, baseline, parallel sweep, ranked register), `/prove` (reproduce before
   fixing), `/fix` (one finding, one commit), `/commit` (split an accumulated tree into atomic commits),
   `/check` (fast green-check), `/handoff` (write up what wasn't fixed).
-- `agents/` — five read-only auditors, one per graded category plus types.
+- `agents/` — five read-only auditors, one per graded category plus types, and `finding-verifier`.
 
 **The stack in `10-workspace.md` is a strong prior, not a verified fact.** It was reconstructed from three
 unrelated prior candidates' public repos, not from Speechify, who only said "a pnpm-based TypeScript
