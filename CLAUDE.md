@@ -158,8 +158,9 @@ TypeScript monorepo, delivered as atomic commits with written justifications.
 
 - `rules/` — 2 unconditional (`00-mission`, `10-workspace`) + 7 path-scoped (typescript, api-grpc,
   node-runtime, data-drizzle, client-react, testing, secrets-config).
-- `skills/` — `/audit` (kickoff, baseline, parallel sweep, ranked register), `/fix` (one finding, one
-  commit), `/check` (fast green-check), `/handoff` (write up what wasn't fixed).
+- `skills/` — `/audit` (kickoff, baseline, parallel sweep, ranked register), `/prove` (reproduce before
+  fixing), `/fix` (one finding, one commit), `/check` (fast green-check), `/handoff` (write up what wasn't
+  fixed).
 - `agents/` — five read-only auditors, one per graded category plus types.
 
 **The stack in `10-workspace.md` is a strong prior, not a verified fact.** It was reconstructed from three
